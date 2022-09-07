@@ -26,6 +26,7 @@ export namespace nft {
         paymentTokenAddress: Address,
         paymentAmount: BigInt,
         timestamp: BigInt,
+        blockHeight: BigInt,
         options: NftOptions 
     ): void {
 
@@ -53,6 +54,7 @@ export namespace nft {
             sellActionDailyAggregatedEntity.transactionCount = sellActionDailyAggregatedEntity.transactionCount.plus(BIG_INT_ONE);
             sellActionDailyAggregatedEntity.volumeInUSD = sellActionDailyAggregatedEntity.volumeInUSD.plus(volumeInUSD);
             sellActionDailyAggregatedEntity.updatedTimestamp = timestamp;
+            sellActionDailyAggregatedEntity.blockHeight = blockHeight;
 
             // Buy Daily Aggregated Entity
             let buyActionDailyAggregatedEntityId = getDailyAggregatedEntityId(contractAddressArray[i].toHexString(), timestamp, "BUY");
@@ -60,6 +62,7 @@ export namespace nft {
             buyActionDailyAggregatedEntity.transactionCount = buyActionDailyAggregatedEntity.transactionCount.plus(BIG_INT_ONE);
             buyActionDailyAggregatedEntity.volumeInUSD = buyActionDailyAggregatedEntity.volumeInUSD.plus(volumeInUSD);
             buyActionDailyAggregatedEntity.updatedTimestamp = timestamp;
+            buyActionDailyAggregatedEntity.blockHeight = blockHeight;
 
             // Account 
             let buyerAccount = getOrCreateAirAccount(toArray[i].toHexString());
@@ -112,26 +115,31 @@ export namespace nft {
             transaction.tokenId = nftIdArray[i];
             transaction.paymentAmount = paymentAmount.div(BigInt.fromI32(fromArray.length)); // For bundle sale, equally divide the payment amount in all sale transaction
             
-            let txnExtraDataMaplength = options.transactionExtraData.entries.length;
-            let extraDataArray = new Array<string>();
-            for (let i = 0; i < txnExtraDataMaplength; i++) {
-                let entry =  options.transactionExtraData.entries[i]
-                let id = entry.key
-                let childMap = entry.value
-                for (let j = 0; j < childMap.entries.length; j++) {
-                    let name = childMap.entries[j].key 
-                    let value = childMap.entries[j].value 
-                    let airExtraData = new AirExtraData(id)
-                    airExtraData.name = name
-                    airExtraData.value = value
-                    airExtraData.save()
-                    extraDataArray.push(id)
+            // populate transaction extraData object 
+            if (options != null 
+                && options.transactionExtraData != null 
+                && options.transactionExtraData.entries.length > 0) {
+
+                let txnExtraDataMaplength = options.transactionExtraData.entries.length;
+                let extraDataArray = new Array<string>();
+                for (let i = 0; i < txnExtraDataMaplength; i++) {
+                    let entry =  options.transactionExtraData.entries[i]
+                    let id = entry.key
+                    let childMap = entry.value
+                    for (let j = 0; j < childMap.entries.length; j++) {
+                        let name = childMap.entries[j].key 
+                        let value = childMap.entries[j].value 
+                        let airExtraData = new AirExtraData(id)
+                        airExtraData.name = name
+                        airExtraData.value = value
+                        airExtraData.save()
+                        extraDataArray.push(id)
+                    }
                 }
+                transaction.extraData = extraDataArray
             }
-            transaction.extraData = extraDataArray
             //Build Relationship 
             saleStat.token = saleToken.id;
-
             sellActionDailyAggregatedEntity.stats = sellDailyAggregateEntityStatsId;
             sellActionDailyAggregatedEntity.contract = contract.id
 
