@@ -16,9 +16,13 @@ const POAP_CONTRACT_ADDRESS = Address.fromString("0x22C1f6050E56d2876009903609a2
 export function handleTransfer(ev: TransferEvent): void {
 
   // call airstack function to populate schemas
+  // skip the logic if the transfer event is not mint
+  let from = ev.params.from;
+  if (from != ZERO_ADDRESS) {
+    return 
+  }
   let txHashString = ev.transaction.hash.toHex();
-  let seller = ev.params.from;
-  let buyer = ev.params.to;
+  let to = ev.params.to;
   let tokenId = ev.params.tokenId;
   let blockTimestamp = ev.block.timestamp;
   let blockHeight = ev.block.number
@@ -31,8 +35,8 @@ export function handleTransfer(ev: TransferEvent): void {
   log.warning("data for contract call tx: {} logindex: {}  from:  {} to: {} contract: {} tokenId: {} blockTimestamp {} eventId {}  blockHeight {}", [
     txHashString,
     ev.logIndex.toString(),
-    seller.toHex(),
-    buyer.toHex(),
+    from.toHex(),
+    to.toHex(),
     POAP_CONTRACT_ADDRESS.toHex(),
     tokenId.toString(),
     blockTimestamp.toString(),
@@ -40,24 +44,25 @@ export function handleTransfer(ev: TransferEvent): void {
     blockHeight.toString()
   ]);
 
-  let extraDataMap = new TypedMap<string, string>()
-  extraDataMap.set("eventId", eventId.toString())
-
-  let id =  "transactionExtraData-" + ev.transaction.hash.toHex() + "-" + ev.transactionLogIndex.toString()
-  let map = new TypedMap<string, TypedMap<string, string>>();
-  map.set(id, extraDataMap)
-  let nftOptions = new airstack.nft.NftOptions(map)
+  // let extraDataMap = new TypedMap<string, string>()
+  // extraDataMap.set("eventId", eventId.toString())
+  // let id =  "transactionExtraData-" + ev.transaction.hash.toHex() + "-" + ev.transactionLogIndex.toString()
+  // let map = new TypedMap<string, TypedMap<string, string>>();
+  // map.set(id, extraDataMap)
+  // let nftOptions = new airstack.poap.PoapOptions(map)
   
-  airstack.nft.trackNFTSaleTransactions(
+  airstack.poap.trackPoapAttendTransactions(
     txHashString,
-    [seller],
-    [buyer],
+    [from],
+    [to],
     [POAP_CONTRACT_ADDRESS],
     [ev.params.tokenId],
-    ZERO_ADDRESS,
-    BIGINT_ZERO,
+    [eventId],
     blockTimestamp,
     blockHeight,
-    nftOptions
+    "ATTEND",
+    "POAP",
+    //"MAINNET"
+   "XDAI"
   ); 
 }

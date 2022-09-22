@@ -58,8 +58,6 @@ dataSources:
         - name: CalculationsSushiSwap
           file: ./abis/Prices/Calculations/SushiSwap.json 
       eventHandlers:
-        - event: EventToken(uint256,uint256)
-          handler: handleEventToken
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
       file: ./src/mapping.ts

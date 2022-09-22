@@ -33,6 +33,7 @@ enum AirProtocolType {
   STAKING
   P2E #play to earn
   LAUNCHPAD
+  POAP
 }
 enum AirTokenStandardType {
   ERC1155
@@ -137,6 +138,7 @@ type AirDailyAggregateEntity implements AirEntityStats @entity {
   #dailyChange: AirEntityDailyChangeStats!
   blockHeight: BigInt!
   extraData: [AirExtraData!]
+  eventId: String!
 }
 
 type AirDailyAggregateEntityAccount @entity {
@@ -157,22 +159,21 @@ type AirDailyAggregateEntityStats @entity {
   id: ID!
   protocolActionType: AirProtocolActionType!
   #### NFT Market Place
-  saleStat: AirNFTSaleStats
+  #saleStat: AirNFTSaleStats
+  attendStat: AirNFTSaleStats
   # mintStats: AirNFTSaleStats
   # giftStats: AirNFTSaleStats
 }
 
 enum AirNFTTransactionType {
-  SALE
-  MINT
-  GIFT
+  ATTEND
 }
 
 type AirNFTSaleStats implements AirEntityStats @entity {
   id: ID!
   token: AirToken!
   # todo: Please check if the derived from can work here.
-  transactions: [AirNFTSaleTransaction!]! @derivedFrom(field: "saleStat")
+  transactions: [AirNFTSaleTransaction!]! @derivedFrom(field: "attendStat")
 
   walletCount: BigInt!
   tokenCount: BigInt!
@@ -185,13 +186,14 @@ type AirNFTSaleStats implements AirEntityStats @entity {
 type AirNFTSaleTransaction @entity {
   id: ID!
   hash: String!
-  saleStat: AirNFTSaleStats! 
+  attendStat: AirNFTSaleStats! 
   type: AirNFTTransactionType!
   to: AirAccount! #Buyer
   from: AirAccount! #Seller
   transactionToken: AirToken!
   paymentToken: AirToken
   tokenId: BigInt!
+  eventId: BigInt!
   paymentAmount: BigInt
   fees: BigInt
   tokenMetadata: AirTokenMetadata
